@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Login' if mode == 'login' else 'Sign Up' }} - Dear Diary{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card cinematic-fade-in">
+        <h1 class="auth-title">{{ 'Dear Diary,' if mode == 'login' else 'New Journal' }}</h1>
+        <p class="auth-subtitle">
+            {% if mode == 'login' %}
+            Returning to my memories...
+            {% else %}
+            Beginning a new chapter...
+            {% endif %}
+        </p>
+
+        <form action="{{ url_for('login') if mode == 'login' else url_for('signup') }}" method="POST">
+            <div class="input-group">
+                <input type="text" name="username" placeholder="Who are you?" required autocomplete="off"
+                    style="font-family: var(--font-handwriting); font-size: 1.5rem;">
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" placeholder="Secret Key" required
+                    style="font-family: var(--font-handwriting); font-size: 1.5rem;">
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button type="submit" class="btn">
+                    {{ 'Open Diary' if mode == 'login' else 'Start Writing' }}
+                </button>
+            </div>
+        </form>
+
+        <div class="auth-footer">
+            {% if mode == 'login' %}
+            <p>Not yours? <a href="{{ url_for('signup') }}">Start a new journal</a></p>
+            {% else %}
+            <p>Found it? <a href="{{ url_for('login') }}">Open existing journal</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: var(--spacing-md);
+    }
+
+    .auth-card {
+        background: #fffbf0;
+        padding: 4rem;
+        box-shadow: 10px 10px 30px rgba(44, 36, 27, 0.15);
+        border: 1px solid var(--border-color);
+        max-width: 500px;
+        width: 100%;
+        position: relative;
+        transform: rotate(1deg);
+    }
+
+    /* Simulate a book cover or paper stack */
+    .auth-card::before {
+        content: '';
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        right: -5px;
+        bottom: -5px;
+        border: 1px solid var(--border-color);
+        z-index: -1;
+        background: #fcf6e6;
+        transform: rotate(-2deg);
+    }
+
+    .auth-title {
+        font-size: 3.5rem;
+        /* Large handwriting */
+        margin-bottom: 0.5rem;
+        text-align: center;
+        line-height: 1;
+    }
+
+    .auth-subtitle {
+        color: var(--ink-secondary);
+        text-align: center;
+        margin-bottom: 3rem;
+        font-family: var(--font-body);
+        font-style: italic;
+    }
+
+    .auth-footer {
+        margin-top: 3rem;
+        text-align: center;
+        font-size: 1rem;
+        color: var(--ink-secondary);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,199 @@
+:root {
+    /* Old Paper Palette */
+    --bg-color: #f4e4bc;
+    --paper-texture: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZjRlNGJjIi8+CjxwYXRoIGQ9Ik0wIDBoNHY0SDB6IiBmaWxsPSIjZjNmM2YzIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+');
+
+    --ink-primary: #2c241b;
+    /* Dark Sepia */
+    --ink-secondary: #5d4a35;
+    /* Lighter Sepia for secondary text */
+    --ink-accent: #8a3324;
+    /* Faded Red/Carnelian for accents */
+    --line-color: #a3cdf0;
+    /* Faded Blue for notebook lines */
+
+    --border-color: #d3c4a5;
+
+    /* Spacing */
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 2rem;
+    --content-width: 800px;
+
+    /* Fonts */
+    --font-handwriting: 'La Belle Aurore', cursive;
+    --font-body: 'Crimson Text', serif;
+
+    /* Animation */
+    --ease-organic: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: var(--paper-texture);
+    /* Add a subtle vignette */
+    background: radial-gradient(circle at center, var(--bg-color), #e0d0a0);
+    color: var(--ink-primary);
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--font-handwriting);
+    font-weight: 400;
+    /* Handwriting is usually regular weight */
+    color: var(--ink-primary);
+}
+
+a {
+    color: var(--ink-accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--ink-accent);
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    border-bottom-style: solid;
+    color: var(--ink-primary);
+}
+
+/* Layout Utilities */
+.container {
+    width: 100%;
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+    position: relative;
+}
+
+/* Helper Classes */
+.cinematic-fade-in {
+    animation: fadeIn 1s var(--ease-organic) forwards;
+}
+
+.cinematic-slide-up {
+    animation: slideUp 0.8s var(--ease-organic) forwards;
+}
+
+.cinematic-blur-in {
+    animation: fadeIn 1s var(--ease-organic) forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Components */
+.btn {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    border: 2px solid var(--ink-primary);
+    background: transparent;
+    color: var(--ink-primary);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 2px;
+    /* Slight rounding but mostly boxy */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 2px 2px 0px rgba(44, 36, 27, 0.1);
+}
+
+.btn:hover {
+    background: var(--ink-primary);
+    color: var(--bg-color);
+    transform: rotate(-1deg) scale(1.02);
+    box-shadow: 3px 3px 0px rgba(44, 36, 27, 0.2);
+}
+
+/* Inputs specialized as Notebook Lines */
+.input-group {
+    margin-bottom: var(--spacing-md);
+}
+
+input,
+textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--ink-primary);
+    font-family: var(--font-handwriting);
+    font-size: 1.5rem;
+    padding: 0.5rem 0;
+    transition: none;
+}
+
+/* Ruled paper effect for textareas */
+textarea {
+    background-image: linear-gradient(transparent, transparent 31px, var(--line-color) 31px, var(--line-color) 32px, transparent 32px);
+    background-size: 100% 32px;
+    background-attachment: local;
+    /* Scrolls with text */
+    line-height: 32px;
+    padding: 0;
+    margin-top: 6px;
+    /* Align first line */
+}
+
+input {
+    border-bottom: 2px solid var(--ink-secondary);
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+}
+
+/* Flash Messages */
+.flash-messages {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.flash-message {
+    background: #fffbf0;
+    border: 1px solid var(--ink-primary);
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+    font-family: var(--font-body);
+    color: var(--ink-accent);
+}
+
+/* Specific adjustments matching new class names if needed, 
+   but we'll try to stick to generic classes where possible */
