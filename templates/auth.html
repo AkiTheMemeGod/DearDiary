@@ -8,34 +8,32 @@
         <h1 class="auth-title">{{ 'Dear Diary,' if mode == 'login' else 'New Journal' }}</h1>
         <p class="auth-subtitle">
             {% if mode == 'login' %}
-            Returning to my memories...
+            Open the pages of your mind.
             {% else %}
-            Beginning a new chapter...
+            A safe place for your thoughts.
             {% endif %}
         </p>
 
         <form action="{{ url_for('login') if mode == 'login' else url_for('signup') }}" method="POST">
             <div class="input-group">
-                <input type="text" name="username" placeholder="Who are you?" required autocomplete="off"
-                    style="font-family: var(--font-handwriting); font-size: 1.5rem;">
+                <input type="text" name="username" placeholder="Name" required autocomplete="off">
             </div>
             <div class="input-group">
-                <input type="password" name="password" placeholder="Secret Key" required
-                    style="font-family: var(--font-handwriting); font-size: 1.5rem;">
+                <input type="password" name="password" placeholder="Key" required>
             </div>
 
-            <div style="text-align: center; margin-top: 2rem;">
+            <div style="text-align: center; margin-top: 3rem;">
                 <button type="submit" class="btn">
-                    {{ 'Open Diary' if mode == 'login' else 'Start Writing' }}
+                    {{ 'Unlock' if mode == 'login' else 'Create' }}
                 </button>
             </div>
         </form>
 
         <div class="auth-footer">
             {% if mode == 'login' %}
-            <p>Not yours? <a href="{{ url_for('signup') }}">Start a new journal</a></p>
+            <p><a href="{{ url_for('signup') }}">I need a new journal</a></p>
             {% else %}
-            <p>Found it? <a href="{{ url_for('login') }}">Open existing journal</a></p>
+            <p><a href="{{ url_for('login') }}">I have a key</a></p>
             {% endif %}
         </div>
     </div>
@@ -47,55 +45,60 @@
         justify-content: center;
         align-items: center;
         min-height: 80vh;
-        padding: var(--spacing-md);
+        perspective: 1000px;
     }
 
     .auth-card {
-        background: #fffbf0;
-        padding: 4rem;
-        box-shadow: 10px 10px 30px rgba(44, 36, 27, 0.15);
-        border: 1px solid var(--border-color);
-        max-width: 500px;
+        background: #fff;
+        padding: 3rem 4rem;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        max-width: 450px;
         width: 100%;
+        transform: rotate(-1deg);
         position: relative;
-        transform: rotate(1deg);
     }
 
-    /* Simulate a book cover or paper stack */
+    /* Tape effect on top */
     .auth-card::before {
         content: '';
         position: absolute;
-        top: 5px;
-        left: 5px;
-        right: -5px;
-        bottom: -5px;
-        border: 1px solid var(--border-color);
-        z-index: -1;
-        background: #fcf6e6;
-        transform: rotate(-2deg);
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 40px;
+        background-image: url("{{ url_for('static', filename='images/tape_1.png') }}");
+        background-size: contain;
+        background-repeat: no-repeat;
+        opacity: 0.9;
     }
 
     .auth-title {
-        font-size: 3.5rem;
-        /* Large handwriting */
-        margin-bottom: 0.5rem;
+        font-family: var(--font-handwriting);
+        font-size: 4rem;
+        margin-bottom: 0;
         text-align: center;
-        line-height: 1;
+        color: var(--ink-primary);
     }
 
     .auth-subtitle {
-        color: var(--ink-secondary);
-        text-align: center;
-        margin-bottom: 3rem;
         font-family: var(--font-body);
         font-style: italic;
+        text-align: center;
+        margin-bottom: 3rem;
+        color: var(--ink-secondary);
     }
 
     .auth-footer {
         margin-top: 3rem;
         text-align: center;
-        font-size: 1rem;
-        color: var(--ink-secondary);
+        font-size: 0.9rem;
+    }
+
+    .auth-footer a {
+        color: var(--ink-accent);
+        text-decoration: none;
+        border-bottom: 1px dotted currentColor;
     }
 </style>
 {% endblock %}
