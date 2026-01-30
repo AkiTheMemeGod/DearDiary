@@ -1,244 +1,407 @@
 {% extends "base.html" %}
 
-{% block title %}My Diary{% endblock %}
+{% block title %}Cover - Dear Diary{% endblock %}
 
 {% block content %}
-<div class="container dashboard-container">
-    <header class="dashboard-header cinematic-fade-in">
-        <div class="header-content">
-            <h1>Dear {{ user.username }},</h1>
-            <p class="subtitle">A chronicle of moments.</p>
-        </div>
-        <div class="header-actions">
-            <!-- Simple toggle for now, could be a modal -->
-            <button class="btn"
-                onclick="document.getElementById('new-entry-form').scrollIntoView({behavior: 'smooth'}); document.getElementById('entry-title').focus();">
-                New Entry
-            </button>
-            <a href="{{ url_for('logout') }}" class="logout-link">Close Diary</a>
-        </div>
-    </header>
+<div class="desk-surface cinematic-fade-in">
 
-    <div class="timeline">
-        <!-- New Entry Section -->
-        <div id="new-entry-form" class="entry-card new-entry-card cinematic-blur-in">
-            <h3 class="new-entry-heading">Dear Diary...</h3>
-            <form action="{{ url_for('new_entry') }}" method="POST">
-                <input type="text" id="entry-title" name="title" placeholder="Today's Title" required
-                    class="bare-input title-input">
-                <div class="mood-selector">
-                    <input type="text" name="mood" placeholder="Mood" class="bare-input mood-input">
-                </div>
-                <textarea name="content" rows="6" placeholder="Write your thoughts here..." required
-                    class="bare-input content-input"></textarea>
-                <div class="form-actions" style="margin-top: 1rem;">
-                    <button type="submit" class="btn">Ink It</button>
-                </div>
-            </form>
+    <!-- Zone 1: The Greeting (Left Upper) -->
+    <div class="greeting-zone">
+        <h1 class="handwritten-greeting" id="greeting">Hello, {{ user.username }}</h1>
+        <div class="scribble-underline">
+            <svg width="200" height="15" viewBox="0 0 200 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.5 12.5C40 2.5 100 5 197.5 10" stroke="#8b5a5b" stroke-width="2" stroke-linecap="round" />
+            </svg>
         </div>
-
-        <!-- Entries List -->
-        {% for entry in entries %}
-        <article class="entry-card cinematic-slide-up" style="animation-delay: {{ loop.index0 * 0.1 }}s">
-            <div class="entry-header">
-                <div class="date-stamp">
-                    <span class="day">{{ entry.created_at.strftime('%d') }}</span>
-                    <span class="month">{{ entry.created_at.strftime('%b') }}</span>
-                </div>
-                <div class="title-group">
-                    <h2 class="entry-title">{{ entry.title }}</h2>
-                    {% if entry.mood %}
-                    <span class="entry-mood">Feeling: {{ entry.mood }}</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="entry-content">
-                {{ entry.content }}
-            </div>
-
-            <div class="entry-footer">
-                <form action="{{ url_for('delete_entry', id=entry.id) }}" method="POST"
-                    onsubmit="return confirm('Burn this page?');">
-                    <button type="submit" class="delete-btn" title="Delete Entry">✕</button>
-                </form>
-            </div>
-        </article>
-        {% else %}
-        <div class="empty-state cinematic-fade-in delay-2">
-            <p>The pages are blank. Waiting for your story.</p>
-        </div>
-        {% endfor %}
+        <div class="date-stamp" id="date-display"></div>
     </div>
+
+    <!-- Zone 2: Daily Whisper (Right Upper - Sticky Note) -->
+    <div class="whisper-zone">
+        <div class="sticky-note">
+            <div class="tape-strip top-center"></div>
+            <p class="quote-text" id="daily-quote">"Keep some room in your heart for the unimaginable."</p>
+            <p class="quote-author" id="quote-author">- Mary Oliver</p>
+            <div class="doodle-star">
+                <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M15 2.5L18.5 10.5L27.5 11.5L20.5 17.5L22.5 26.5L15 22L7.5 26.5L9.5 17.5L2.5 11.5L11.5 10.5L15 2.5Z"
+                        stroke="#5a5a5a" stroke-width="1" stroke-linejoin="round" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone 3: Main Actions (Center/Bottom - scattered) -->
+    <div class="action-zone">
+
+        <!-- Write Action: The "Open Journal" -->
+        <a href="{{ url_for('new_entry_page') }}" class="action-item journal-link">
+            <div class="journal-paper">
+                <span class="action-title">Dear Diary,</span>
+                <p class="action-desc">I have thoughts to pour out today...</p>
+                <div class="ink-stain"></div>
+            </div>
+        </a>
+
+        <!-- Read Action: The "Photo Stack" -->
+        <a href="{{ url_for('entries') }}" class="action-item memory-link">
+            <div class="photo-stack">
+                <div class="photo-backing"></div>
+                <div class="photo-front">
+                    <div class="photo-frame">
+                        {% if latest_image %}
+                        <img src="{{ url_for('get_image', image_id=latest_image.id) }}" alt="Latest Memory"
+                            class="memory-thumb">
+                        {% else %}
+                        <div class="placeholder-img"></div>
+                        {% endif %}
+                    </div>
+                    <span class="action-label">My Memories</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Zone 4: Sparkle (Bottom Left - Scrap) -->
+    <div class="sparkle-zone">
+        <div class="scrap-paper">
+            <span class="prompt-marker">Prompt:</span>
+            <span id="writing-prompt">What made you smile today?</span>
+        </div>
+    </div>
+
 </div>
 
+<script>
+    // 1. Greeting
+    const hour = new Date().getHours();
+    const greetingEl = document.getElementById('greeting');
+    let greetingText = 'Hello';
+    if (hour < 12) greetingText = 'Good morning';
+    else if (hour < 18) greetingText = 'Good afternoon';
+    else greetingText = 'Good evening';
+    greetingEl.textContent = `${greetingText}, {{ user.username }}`;
+
+    // 2. Date
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    document.getElementById('date-display').textContent = new Date().toLocaleDateString('en-US', options);
+
+    // 3. Quotes
+    const quotes = [
+        { text: "Keep some room in your heart for the unimaginable.", author: "Mary Oliver" },
+        { text: "And here you are, living despite it all.", author: "Rupi Kaur" },
+        { text: "What you seek is seeking you.", author: "Rumi" },
+        { text: "The sun will rise and we will try again.", author: "TOP" },
+        { text: "Breathe. It’s just a bad day, not a bad life.", author: "" },
+        { text: "Grow through what you go through.", author: "" }
+    ];
+    const item = quotes[Math.floor(Math.random() * quotes.length)];
+    document.getElementById('daily-quote').textContent = item.text;
+    document.getElementById('quote-author').textContent = item.author ? `- ${item.author}` : '';
+
+    // 4. Prompts
+    const prompts = [
+        "What made you smile today?",
+        "Describe a color that represents your mood.",
+        "What is a small victory you had recently?",
+        "Who are you grateful for right now?",
+        "What is the best thing that happened this week?"
+    ];
+    document.getElementById('writing-prompt').textContent = prompts[Math.floor(Math.random() * prompts.length)];
+</script>
+
 <style>
-    .dashboard-container {
-        padding-top: 4rem;
-        padding-bottom: 4rem;
-    }
-
-    .dashboard-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 3rem;
-        border-bottom: 2px solid var(--ink-secondary);
-        padding-bottom: 1rem;
-    }
-
-    .subtitle {
-        color: var(--ink-secondary);
-        font-family: var(--font-body);
-        font-style: italic;
-    }
-
-    .logout-link {
-        font-size: 1rem;
-        margin-left: 1.5rem;
-        font-family: var(--font-handwriting);
-        font-weight: bold;
-        border-bottom: none;
-    }
-
-    .logout-link:hover {
-        color: var(--ink-accent);
-    }
-
-    .timeline {
-        display: flex;
-        flex-direction: column;
-        gap: 3rem;
+    .desk-surface {
         position: relative;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+        min-height: 80vh;
+        /* Using grid strictly for zoning, but contents will float organically */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 1fr auto;
+        gap: 2rem;
     }
 
-    /* Vertical line for binding look */
-    .timeline::before {
-        content: '';
-        position: absolute;
-        left: 2rem;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: var(--ink-accent);
-        opacity: 0.2;
+    /* --- Greeting Zone --- */
+    .greeting-zone {
+        grid-column: 1 / 2;
+        padding-top: 2rem;
+        padding-left: 2rem;
     }
 
-    .entry-card {
-        background: #fffbf0;
-        /* Very light parchment for cards */
-        box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.05);
-        padding: 2.5rem;
-        transform: rotate(-0.5deg);
-        /* Slight organic tilt */
-        margin-left: 4rem;
-        /* Space for the "binding" line */
-        position: relative;
-    }
-
-    .entry-card:hover {
-        transform: rotate(0deg) scale(1.005);
-        transition: transform 0.3s ease;
-    }
-
-    .new-entry-card {
-        background: transparent;
-        border: 2px dashed var(--ink-secondary);
-        box-shadow: none;
-    }
-
-    .title-input {
-        font-size: 2.5rem;
-        border-bottom: none;
-    }
-
-    .mood-input {
-        font-size: 1.2rem;
-        color: var(--ink-secondary);
+    .handwritten-greeting {
         font-family: var(--font-handwriting);
-        margin-top: -1rem;
+        font-size: 5rem;
+        color: var(--ink-primary);
+        margin: 0;
+        line-height: 0.8;
+        transform: rotate(-2deg);
     }
 
-    .entry-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
+    .scribble-underline {
+        margin-left: 1rem;
+        opacity: 0.8;
     }
 
     .date-stamp {
+        font-family: var(--font-body);
+        font-size: 1.2rem;
+        color: var(--ink-secondary);
+        margin-top: 1rem;
+        font-style: italic;
+        letter-spacing: 0.05em;
+    }
+
+    /* --- Whisper Zone (Sticky Note) --- */
+    .whisper-zone {
+        grid-column: 2 / 3;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 3rem;
+    }
+
+    .sticky-note {
+        background-color: #fdf6e3;
+        /* Solarized light yellow/beige */
+        width: 250px;
+        padding: 2rem 1.5rem;
+        box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.1);
+        transform: rotate(3deg);
+        position: relative;
+        transition: transform 0.3s ease;
+    }
+
+    .sticky-note:hover {
+        transform: rotate(1deg) scale(1.02);
+    }
+
+    .tape-strip.top-center {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%) rotate(-1deg);
+        width: 100px;
+        height: 30px;
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(2px);
+    }
+
+    .quote-text {
+        font-family: var(--font-handwriting);
+        /* Handwritten quote */
+        font-size: 1.8rem;
+        line-height: 1.3;
+        color: var(--ink-primary);
+        margin-bottom: 1rem;
+    }
+
+    .doodle-star {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        opacity: 0.3;
+        transform: rotate(15deg);
+    }
+
+    /* --- Action Zone --- */
+    .action-zone {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: center;
+        gap: 6rem;
+        /* Large gap */
+        align-items: center;
+        padding: 4rem 0;
+    }
+
+    .action-item {
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+
+    .action-item:hover {
+        transform: translateY(-5px);
+        z-index: 10;
+    }
+
+    /* Journal Style Link */
+    .journal-paper {
+        background: #fff;
+        width: 320px;
+        height: 220px;
+        padding: 2rem;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        background-image: repeating-linear-gradient(transparent, transparent 23px, #f0f0f0 24px);
+        transform: rotate(-1deg);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-radius: 2px;
+    }
+
+    .journal-paper::before {
+        /* Folded corner effect strictly via CSS gradient if wanted, sticking to simple shadow for now */
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.02);
+        pointer-events: none;
+    }
+
+    .action-title {
+        font-family: var(--font-handwriting);
+        font-size: 3rem;
+        color: var(--ink-accent);
+        margin-bottom: 0.5rem;
+    }
+
+    .action-desc {
+        font-family: var(--font-body);
+        font-size: 1.2rem;
+        color: var(--ink-secondary);
+        font-style: italic;
+    }
+
+    /* Photo Stack Style Link */
+    .photo-stack {
+        position: relative;
+        width: 220px;
+        height: 260px;
+        transform: rotate(4deg);
+    }
+
+    .photo-backing {
+        position: absolute;
+        top: 5px;
+        left: -5px;
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transform: rotate(-5deg);
+        z-index: 1;
+        border: 1px solid #eee;
+    }
+
+    .photo-front {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        padding: 15px 15px 40px 15px;
+        /* Polaroid padding */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        z-index: 2;
         display: flex;
         flex-direction: column;
         align-items: center;
+    }
+
+    .photo-frame {
+        width: 100%;
+        height: 180px;
+        background: #f4f4f4;
+        margin-bottom: 15px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
         justify-content: center;
-        border: 2px solid var(--ink-primary);
-        padding: 0.5rem;
-        min-width: 60px;
-        transform: rotate(-3deg);
     }
 
-    .date-stamp .day {
-        font-family: var(--font-body);
-        font-weight: 700;
-        font-size: 1.5rem;
-        line-height: 1;
+    .placeholder-img {
+        width: 100%;
+        height: 100%;
+        background-color: #eee;
+        background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d0d0d0' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
     }
 
-    .date-stamp .month {
-        font-family: var(--font-body);
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        letter-spacing: 0.1em;
-    }
-
-    .entry-title {
-        font-size: 2rem;
-        margin: 0;
-        line-height: 1.2;
-    }
-
-    .entry-mood {
+    .memory-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
         display: block;
-        font-family: var(--font-body);
-        font-style: italic;
-        color: var(--ink-secondary);
-        margin-top: 0.2rem;
+        filter: sepia(0.2) contrast(0.9);
     }
 
-    .entry-content {
-        white-space: pre-wrap;
-        font-family: var(--font-body);
-        font-size: 1.2rem;
+    .action-label {
+        font-family: var(--font-handwriting);
+        font-size: 1.8rem;
         color: var(--ink-primary);
     }
 
-    .entry-footer {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
+    /* --- Sparkle Zone (Scrap) --- */
+    .sparkle-zone {
+        grid-column: 1 / 2;
+        grid-row: 3;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
     }
 
-    .delete-btn {
-        background: transparent;
-        border: none;
-        color: var(--ink-accent);
-        cursor: pointer;
-        font-size: 1.2rem;
-        opacity: 0.4;
-        transition: opacity 0.2s;
-    }
-
-    .delete-btn:hover {
-        opacity: 1;
-        transform: scale(1.1);
-    }
-
-    .empty-state {
-        text-align: center;
+    .scrap-paper {
+        background: #fff;
+        padding: 1rem 2rem;
+        max-width: 300px;
+        /* Jagged edges via clip-path would be cool, but box-shadow is "comfier"/softer */
+        border-bottom: 2px solid #eee;
+        transform: rotate(-1deg);
+        font-family: var(--font-body);
+        font-size: 1.1rem;
         color: var(--ink-secondary);
-        padding: 4rem 0;
-        font-family: var(--font-handwriting);
-        font-size: 1.5rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .prompt-marker {
+        font-weight: bold;
+        color: var(--ink-accent);
+        margin-right: 0.5rem;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+        .desk-surface {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .greeting-zone,
+        .whisper-zone,
+        .action-zone,
+        .sparkle-zone {
+            width: 100%;
+            grid-column: auto;
+            text-align: center;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .action-zone {
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .handwritten-greeting {
+            font-size: 3.5rem;
+        }
     }
 </style>
 {% endblock %}
