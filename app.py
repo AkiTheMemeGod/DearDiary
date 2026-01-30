@@ -73,7 +73,12 @@ def create_app():
     @login_required
     def dashboard():
         # Dashboard is now the "Cover" page
-        return render_template('dashboard.html', user=current_user)
+        # Fetch latest image for the "Memories" card
+        latest_image = EntryImage.query.join(DiaryEntry).filter(
+            DiaryEntry.user_id == current_user.id
+        ).order_by(EntryImage.created_at.desc()).first()
+        
+        return render_template('dashboard.html', user=current_user, latest_image=latest_image)
 
     @app.route('/entries')
     @login_required
