@@ -11,7 +11,7 @@ import os
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'dev-secret-key-change-this' # TODO: Use env var
+    app.config['SECRET_KEY'] = '9012j3ikajlkanslkdnaljsdnlihwh90odwj;aoilasndasiojdq9poijanskj,dbas,jdamsd'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'static/uploads'
