@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}{{ entry.title }} - Dear Diary{% endblock %}
+
+{% block content %}
+<div class="write-page">
+    <div class="nav-links" style="position: absolute; top: 2rem; left: 2rem; right: auto;">
+        <a href="{{ url_for('entries') }}" class="nav-item">← Back to Pages</a>
+    </div>
+
+    <div class="date-header">
+        <span class="day">{{ entry.created_at.strftime('%A, %B %d, %Y') }}</span>
+    </div>
+
+    <div class="paper-canvas">
+        <h1 class="entry-title">{{ entry.title }}</h1>
+        <div class="entry-mood">Mood: {{ entry.mood }}</div>
+
+        <div class="content-text">
+            {{ entry.content }}
+        </div>
+
+        {% if entry.images %}
+        {% for image in entry.images %}
+        <div class="taped-image"
+            style="position: absolute; left: {{ image.x_pos }}px; top: {{ image.y_pos }}px; transform: rotate({{ image.rotation }}deg);">
+            <img src="{{ url_for('get_image', image_id=image.id) }}" alt="Memory">
+        </div>
+        {% endfor %}
+        {% else %}
+        <!-- Debug info or empty state -->
+        <div
+            style="margin-top: 4rem; text-align: center; color: var(--ink-secondary); font-style: italic; opacity: 0.5;">
+            (No photos attached to this page)
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .write-page {
+        padding-bottom: 5rem;
+        padding-top: 4rem;
+    }
+
+    .date-header {
+        font-family: var(--font-handwriting);
+        font-size: 1.5rem;
+        color: var(--ink-secondary);
+        text-align: right;
+        margin-bottom: 1rem;
+        margin-right: 4rem;
+    }
+
+    .paper-canvas {
+        position: relative;
+        min-height: 80vh;
+        /* Using a lined background for the writing area */
+        background-image: repeating-linear-gradient(transparent,
+                transparent 31px,
+                rgba(0, 0, 0, 0.05) 32px);
+        padding: 0 4rem;
+        /* Margins */
+    }
+
+    .entry-title {
+        font-family: var(--font-handwriting);
+        font-size: 3rem;
+        color: var(--ink-primary);
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .entry-mood {
+        font-family: var(--font-handwriting);
+        font-size: 1.5rem;
+        color: var(--ink-secondary);
+        font-style: italic;
+        margin-bottom: 2rem;
+    }
+
+    .content-text {
+        font-family: var(--font-body);
+        font-size: 1.3rem;
+        line-height: 32px;
+        /* Match grid */
+        color: var(--ink-primary);
+        white-space: pre-wrap;
+    }
+
+    /* Tape & Image Styling (Shared but scoped if needed) */
+    .taped-image {
+        position: absolute;
+        width: 250px;
+        /* Match polaroid size */
+        padding: 10px 10px 30px 10px;
+        background: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        display: block;
+        z-index: 10;
+        transition: transform 0.2s;
+    }
+
+    .taped-image:hover {
+        transform: scale(1.05) !important;
+        /* Zoom slightly on hover */
+        z-index: 20 !important;
+    }
+
+    .taped-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+        filter: sepia(0.2) contrast(0.9);
+        pointer-events: none;
+    }
+
+    /* Tape Element */
+    .taped-image::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%) rotate(-1deg);
+        width: 140px;
+        height: 45px;
+        background-image: url("{{ url_for('static', filename='images/tape_1.png') }}");
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 0.85;
+        mix-blend-mode: multiply;
+        z-index: 10;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    }
+</style>
+{% endblock %}

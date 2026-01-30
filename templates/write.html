@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+
+{% block title %}Write - Dear Diary{% endblock %}
+
+{% block content %}
+<div class="write-page cinematic-fade-in">
+    <div class="date-header">
+        <span id="current-date"></span>
+    </div>
+
+    <form action="{{ url_for('new_entry') }}" method="POST" enctype="multipart/form-data" class="write-form"
+        id="entry-form">
+        <!-- Hidden Inputs for Image Coordinates -->
+        <input type="hidden" name="image_coordinates" id="image-coordinates">
+
+        <div class="paper-canvas" id="paper-canvas">
+            <input type="text" name="title" placeholder="Title of this memory..." class="bare-input title-input"
+                required autocomplete="off">
+            <input type="text" name="mood" placeholder="How do you feel?" class="bare-input mood-input"
+                autocomplete="off">
+
+            <textarea name="content" placeholder="Dear Diary..." class="bare-input content-textarea"
+                required></textarea>
+
+            <!-- Drop Zone Overlay -->
+            <div class="drop-help" id="drop-help">
+                <span>Drag photos anywhere on the page</span>
+            </div>
+        </div>
+
+        <div class="controls-area">
+            <label for="file-upload" class="attachment-btn" title="Add Photo">
+                <span class="icon">📎</span> Attach Memory
+            </label>
+            <input id="file-upload" type="file" name="images" multiple accept="image/*" style="display: none;">
+
+            <button type="submit" class="btn save-btn">Ink It</button>
+        </div>
+    </form>
+</div>
+
+<!-- Template for Draggable Image -->
+<template id="draggable-image-template">
+    <div class="draggable-image-container">
+        <div class="tape-strip"></div>
+        <img src="" alt="Memory" draggable="false">
+        <div class="remove-btn" title="Remove">×</div>
+    </div>
+</template>
+
+<script>
+    // --- 1. Date ---
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', options);
+
+    // --- 2. Auto-Expanding Textarea ---
+    const textarea = document.querySelector('.content-textarea');
+    textarea.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // --- 3. Drag & Drop Logic ---
+    const canvas = document.getElementById('paper-canvas');
+    const fileInput = document.getElementById('file-upload');
+    const coordInput = document.getElementById('image-coordinates');
+    let draggedItem = null;
+    let imagesData = []; // Store file objects and their IDs
+
+    // Handle File Selection (Button)
+    fileInput.addEventListener('change', function (e) {
+        handleFiles(this.files);
+    });
+
+    // Handle Drag Over Canvas (for files from OS)
+    canvas.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        canvas.classList.add('drag-active');
+    });
+
+    canvas.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        canvas.classList.remove('drag-active');
+    });
+
+    canvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        canvas.classList.remove('drag-active');
+        if (e.dataTransfer.files.length > 0) {
+            handleFiles(e.dataTransfer.files);
+        }
+    });
+
+    function handleFiles(files) {
+        // For simplicity in this non-JS-framework setup, we are visualizing them immediately.
+        // In a real complex app, we'd sync this better. 
+        // Note: The actual upload still relies on the file input for form submission, 
+        // OR we need to use AJAX. Given requirements: standard Flask form.
+
+        // We will append files to the file input (if possible) or just rely on a separate standard upload 
+        // and visual placement logic. 
+        // LIMITATION: Standard HTML file inputs can't easily be modified programmatically securely.
+        // WORKAROUND: We will visually place them, but the backend will just receive the list of files.
+        // The "coordinates" feature would require storing per-image metadata which is complex for now.
+        // User asked for "Free place", so we will enable visual dragging.
+
+        [...files].forEach(file => {
+            createVisualImage(file);
+        });
+    }
+
+    function createVisualImage(file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const template = document.getElementById('draggable-image-template');
+            const clone = template.content.cloneNode(true);
+            const container = clone.querySelector('.draggable-image-container');
+            const img = clone.querySelector('img');
+
+            img.src = e.target.result;
+            container.dataset.filename = file.name; // Store filename
+
+            // Random initial position near center/bottom
+            const randX = Math.random() * 50 + 20;
+            const randY = Math.random() * 200 + 400; // Start lower down
+            const randRot = Math.random() * 6 - 3;
+
+            container.style.left = randX + 'px';
+            container.style.top = randY + 'px';
+            container.style.transform = `rotate(${randRot}deg)`;
+            container.dataset.rotation = randRot;
+
+            // Interaction Logic
+            setupDraggable(container);
+
+            canvas.appendChild(container);
+        }
+        reader.readAsDataURL(file);
+    }
+
+    function setupDraggable(element) {
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+
+        // START (Mouse)
+        element.onmousedown = function (e) {
+            if (e.target.classList.contains('remove-btn')) return;
+            startDrag(e.clientX, e.clientY);
+        };
+
+        // START (Touch)
+        element.ontouchstart = function (e) {
+            if (e.target.classList.contains('remove-btn')) return;
+            // Prevent scrolling while dragging
+            e.preventDefault();
+            const touch = e.touches[0];
+            startDrag(touch.clientX, touch.clientY);
+        };
+
+        function startDrag(x, y) {
+            isDragging = true;
+            startX = x;
+            startY = y;
+            initialLeft = element.offsetLeft;
+            initialTop = element.offsetTop;
+            element.style.cursor = 'grabbing';
+            element.style.zIndex = 1000;
+        }
+
+        // MOVE (Mouse)
+        document.onmousemove = function (e) {
+            if (!isDragging) return;
+            moveDrag(e.clientX, e.clientY);
+        };
+
+        // MOVE (Touch)
+        document.ontouchmove = function (e) {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            moveDrag(touch.clientX, touch.clientY);
+        };
+
+        function moveDrag(x, y) {
+            const dx = x - startX;
+            const dy = y - startY;
+            element.style.left = (initialLeft + dx) + 'px';
+            element.style.top = (initialTop + dy) + 'px';
+        }
+
+        // END (Mouse)
+        document.onmouseup = function () {
+            endDrag();
+        };
+
+        // END (Touch)
+        document.ontouchend = function () {
+            endDrag();
+        };
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            element.style.cursor = 'grab';
+            element.style.zIndex = '';
+        }
+
+        const removeBtn = element.querySelector('.remove-btn');
+        if (removeBtn) {
+            removeBtn.onclick = function () {
+                element.remove();
+            };
+            removeBtn.ontouchstart = function (e) {
+                e.stopPropagation(); // Stop drag start
+                element.remove();
+            }
+        }
+    }
+
+    // --- 4. Submit Handler ---
+    // --- 4. Submit Handler (AJAX) ---
+    // --- 4. Submit Handler (AJAX) ---
+    const fileMap = new Map(); // Store files by Unique ID
+
+    // Override createVisualImage to store files in map
+    const originalCreateVisualImage = createVisualImage;
+    createVisualImage = function (file) {
+        // Generate unique ID
+        const uniqueId = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+        fileMap.set(uniqueId, file);
+
+        // Call original logic
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const template = document.getElementById('draggable-image-template');
+            const clone = template.content.cloneNode(true);
+            const container = clone.querySelector('.draggable-image-container');
+            const img = clone.querySelector('img');
+
+            img.src = e.target.result;
+            // Store Unique ID instead of filename for mapping
+            container.dataset.fileId = uniqueId;
+            container.dataset.filename = file.name;
+
+            // Random initial position near center/bottom
+            const randX = Math.random() * 50 + 20;
+            const randY = Math.random() * 200 + 400;
+            const randRot = Math.random() * 6 - 3;
+
+            container.style.left = randX + 'px';
+            container.style.top = randY + 'px';
+            container.style.transform = `rotate(${randRot}deg)`;
+            container.dataset.rotation = randRot;
+
+            setupDraggable(container);
+            canvas.appendChild(container);
+        }
+        reader.readAsDataURL(file);
+    };
+
+    // Also intercept the file input change to add to map
+    const originalHandleFiles = handleFiles;
+    handleFiles = function (files) {
+        [...files].forEach(file => {
+            createVisualImage(file);
+        });
+    }
+
+    document.getElementById('entry-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const containers = document.querySelectorAll('.draggable-image-container');
+        const coords = [];
+
+        // 1. Gather Coords
+        containers.forEach(el => {
+            const filename = el.dataset.filename;
+            coords.push({
+                filename: filename,
+                x: parseInt(el.style.left, 10),
+                y: parseInt(el.style.top, 10),
+                rot: parseFloat(el.dataset.rotation || 0)
+            });
+
+            // 2. Ensure file is in FormData (if it was from drag & drop)
+            // We clear original 'images' from form data and re-append from our Map
+            // to ensure we get exactly what's on screen (minus deleted ones).
+        });
+
+        formData.set('image_coordinates', JSON.stringify(coords));
+
+        // Re-build images list from the visible containers
+        formData.delete('images');
+        containers.forEach(el => {
+            const fileId = el.dataset.fileId;
+            if (fileMap.has(fileId)) {
+                formData.append('images', fileMap.get(fileId));
+            }
+        });
+
+        const btn = document.querySelector('.save-btn');
+        btn.textContent = 'Inking...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                // Fallback
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to save entry. Please try again.');
+            btn.textContent = 'Ink It';
+            btn.disabled = false;
+        }
+    });
+</script>
+
+<style>
+    .write-page {
+        padding-bottom: 5rem;
+    }
+
+    .date-header {
+        font-family: var(--font-handwriting);
+        font-size: 1.5rem;
+        color: var(--ink-secondary);
+        text-align: right;
+        margin-bottom: 1rem;
+        margin-right: 2rem;
+    }
+
+    .paper-canvas {
+        position: relative;
+        min-height: 80vh;
+        /* Using a lined background for the writing area */
+        background-image: repeating-linear-gradient(transparent,
+                transparent 31px,
+                rgba(0, 0, 0, 0.05) 32px);
+        padding: 0 4rem;
+        /* Margins */
+    }
+
+    .paper-canvas.drag-active {
+        box-shadow: inset 0 0 20px rgba(139, 90, 91, 0.2);
+    }
+
+    .title-input {
+        font-size: 3rem;
+        line-height: normal;
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .mood-input {
+        font-size: 1.5rem;
+        font-style: italic;
+        color: var(--ink-secondary);
+        margin-bottom: 2rem;
+    }
+
+    .content-textarea {
+        background: transparent !important;
+        /* Override previous gradient */
+        line-height: 32px;
+        /* Match grid */
+        font-size: 1.3rem;
+        min-height: 500px;
+    }
+
+    /* Draggable Image Styling */
+    .draggable-image-container {
+        position: absolute;
+        width: 250px;
+        /* Polaroid size */
+        padding: 10px 10px 30px 10px;
+        /* Polaroid bottom */
+        background: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        cursor: grab;
+        transition: transform 0.1s;
+    }
+
+    .draggable-image-container:hover {
+        transform: scale(1.02) !important;
+    }
+
+    .draggable-image-container img {
+        width: 100%;
+        height: auto;
+        display: block;
+        filter: sepia(0.2) contrast(0.9);
+        pointer-events: none;
+    }
+
+    /* Tape on draggable */
+    .tape-strip {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%) rotate(-1deg);
+        width: 140px;
+        height: 45px;
+        background-image: url("{{ url_for('static', filename='images/tape_1.png') }}");
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        opacity: 0.85;
+        mix-blend-mode: multiply;
+        z-index: 10;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #d9534f;
+        color: white;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        text-align: center;
+        line-height: 23px;
+        cursor: pointer;
+        font-family: sans-serif;
+        font-weight: bold;
+        display: none;
+    }
+
+    .draggable-image-container:hover .remove-btn {
+        display: block;
+    }
+
+    /* Controls Fixed at Bottom */
+    .controls-area {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        padding: 0.5rem 2rem;
+        border-radius: 50px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .attachment-btn {
+        cursor: pointer;
+        font-family: var(--font-handwriting);
+        font-size: 1.2rem;
+        color: var(--ink-secondary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .attachment-btn:hover {
+        color: var(--ink-accent);
+    }
+
+    .save-btn {
+        margin-top: 0;
+        background: var(--ink-primary);
+        color: white;
+        padding: 0.4rem 1.5rem;
+    }
+
+    .drop-help {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+</style>
+{% endblock %}
