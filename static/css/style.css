@@ -1,0 +1,351 @@
+:root {
+    /* Colors */
+    --paper-bg: #fdfbf7;
+    --ink-primary: #2c2c2c;
+    --ink-secondary: #5a5a5a;
+    --ink-accent: #8b5a5b;
+    /* Muted reddish-brown */
+    --highlight: #e3d5ca;
+
+    /* Typography */
+    --font-handwriting: 'Reenie Beanie', cursive;
+    --font-body: 'Cormorant Garamond', serif;
+
+    /* Effects */
+    --paper-shadow: 0 10px 20px rgba(0, 0, 0, 0.08), 0 6px 6px rgba(0, 0, 0, 0.1);
+    --tape-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    background-color: #f0ebe5;
+    /* Desk color */
+    background-image: url('../images/paper_texture.jpg');
+    background-blend-mode: multiply;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: var(--ink-primary);
+    font-family: var(--font-body);
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* Auth Page specific fixes */
+.input-group {
+    margin-bottom: 2rem;
+    border-bottom: 2px dashed var(--ink-secondary);
+    transition: border-color 0.3s;
+}
+
+.input-group:focus-within {
+    border-bottom-color: var(--ink-accent);
+}
+
+.input-group input {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: var(--font-handwriting);
+    font-size: 2rem !important;
+    /* Force large text */
+    color: var(--ink-primary);
+    padding: 0.5rem 0;
+}
+
+.input-group input::placeholder {
+    color: var(--ink-secondary);
+    opacity: 0.6;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 1.2rem;
+}
+
+/* Typography Overrides */
+h1,
+h2,
+h3 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+h1 {
+    font-family: var(--font-handwriting);
+    font-size: 4rem;
+    color: var(--ink-primary);
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+/* Layout - "The Notebook" */
+.notebook-container {
+    max-width: 900px;
+    margin: 4rem auto;
+    padding: 3rem 4rem;
+    background-color: var(--paper-bg);
+    background-image: url('../images/paper_texture.jpg');
+    background-size: cover;
+    box-shadow: var(--paper-shadow);
+    transform: rotate(-0.5deg);
+    position: relative;
+    min-height: 80vh;
+}
+
+/* Subtle page tilt animation on load */
+@keyframes pageFloat {
+    0% {
+        transform: translateY(10px) rotate(-0.5deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0) rotate(-0.5deg);
+        opacity: 1;
+    }
+}
+
+.notebook-container {
+    animation: pageFloat 1s ease-out forwards;
+}
+
+/* Navigation - "Bookmarks" */
+.nav-links {
+    position: absolute;
+    top: -2rem;
+    right: 2rem;
+    display: flex;
+    gap: 1rem;
+    z-index: 10;
+}
+
+.nav-item {
+    background: var(--ink-accent);
+    color: #fff;
+    padding: 0.5rem 1.5rem;
+    text-decoration: none;
+    font-family: var(--font-handwriting);
+    font-size: 1.5rem;
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.nav-item:hover {
+    transform: translateY(-5px);
+}
+
+/* Forms & Inputs */
+.bare-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: var(--font-handwriting);
+    color: var(--ink-primary);
+}
+
+textarea.bare-input {
+    background-image: linear-gradient(transparent 95%, #e1e1e1 95%);
+    background-size: 100% 2rem;
+    line-height: 2rem;
+    padding: 0;
+    resize: none;
+    font-size: 1.5rem;
+}
+
+/* Button - "Ink Stamp" style */
+.btn {
+    background: transparent;
+    border: 2px solid var(--ink-primary);
+    color: var(--ink-primary);
+    padding: 0.5rem 2rem;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+    margin-top: 2rem;
+}
+
+.btn:hover {
+    background: var(--ink-primary);
+    color: #fff;
+    transform: scale(1.02);
+}
+
+/* Flash Messages */
+.flash-messages {
+    position: fixed;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+}
+
+.alert {
+    background: #fff;
+    padding: 1rem 2rem;
+    border: 1px solid var(--ink-primary);
+    font-family: var(--font-handwriting);
+    font-size: 1.5rem;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Tape & Image Styling */
+.taped-image {
+    position: relative;
+    display: inline-block;
+    margin: 1rem;
+    padding: 10px;
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.taped-image img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    filter: sepia(0.2) contrast(0.9);
+    /* Vintage feel */
+}
+
+/* The Tape Element */
+.taped-image::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    width: 130px;
+    height: 45px;
+    background-image: url('../images/tape_1.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    transform: translateX(-50%) rotate(-2deg);
+    opacity: 0.85;
+    mix-blend-mode: multiply;
+    /* Removes white background */
+    z-index: 5;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Different rotations for variety */
+.taped-image:nth-child(odd) {
+    transform: rotate(2deg);
+}
+
+.taped-image:nth-child(even) {
+    transform: rotate(-1.5deg);
+}
+
+/* -------------------
+   Mobile Responsiveness
+   ------------------- */
+
+@media (max-width: 768px) {
+    body {
+        font-size: 1rem;
+        /* Scale down body text slightly */
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        /* Smaller prominent headers */
+    }
+
+    .notebook-container {
+        margin: 1rem auto;
+        /* Less outer margin */
+        padding: 2rem 1.5rem;
+        /* More space for content */
+        max-width: 95%;
+        /* Use more screen width */
+        min-height: 90vh;
+        transform: none;
+        /* remove tilt on mobile for clarity */
+        animation: none;
+    }
+
+    .nav-links {
+        position: relative;
+        /* Stack nav items */
+        top: 0;
+        right: 0;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        /* allow wrapping */
+        justify-content: center;
+        width: 100%;
+    }
+
+    .nav-item {
+        font-size: 1.2rem;
+        padding: 0.5rem 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .flash-messages {
+        width: 90%;
+    }
+
+    /* Auth Page Mobile */
+    .auth-wrapper {
+        align-items: flex-start;
+        padding-top: 4rem;
+    }
+
+    .auth-card {
+        padding: 2rem;
+        transform: none;
+        /* remove rotation */
+    }
+
+    .auth-title {
+        font-size: 2.5rem;
+    }
+
+    .input-group input {
+        font-size: 1.5rem !important;
+    }
+
+    /* Entries List Mobile */
+    .entry-card {
+        margin-left: 0 !important;
+        /* Remove indentation */
+        padding: 1.5rem;
+        transform: none !important;
+        /* Straighten cards */
+    }
+
+    .entry-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .date-stamp {
+        flex-direction: row;
+        gap: 0.5rem;
+        transform: none;
+        width: 100%;
+        justify-content: center;
+        border: 1px solid var(--ink-primary);
+    }
+
+    .header-text {
+        padding-left: 0;
+        width: 100%;
+        text-align: center;
+    }
+
+    .entry-footer {
+        position: relative;
+        top: 0;
+        right: 0;
+        text-align: right;
+        margin-top: 1rem;
+    }
+}
