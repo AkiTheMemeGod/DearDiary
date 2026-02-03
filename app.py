@@ -44,6 +44,21 @@ def login():
         flash('Invalid username or password')
     return render_template('auth.html', mode='login')
 
+"""@app.route('/login', methods=['POST', 'GET'])
+def login():
+    # Temporary route to login with password hash directly
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password_hash = request.form.get('password')
+        
+        user = User.query.filter_by(username=username).first()
+        if user and user.password_hash == password_hash:
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        flash('Invalid username or password hash')
+        return redirect(url_for('login'))
+    return render_template('auth.html', mode='login')"""
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
